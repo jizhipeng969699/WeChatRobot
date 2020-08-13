@@ -1,0 +1,182 @@
+INSTALL_PROTOC=go install github.com/golang/protobuf/protoc-gen-go
+INSTALL_STATIC=go install github.com/rakyll/statik
+INSTALL_SWAGER=go install github.com/swaggo/swag/cmd/swag
+BUILD_DOCKER_NAME=hived:buid
+BUILD_C_DOCKER_NAME=x-hive:latest
+
+
+all: help
+
+
+## docker						- docker build project
+.PHONY:docker
+docker:
+	docker build -t $(BUILD_C_DOCKER_NAME) -f Dockerfile.build .
+
+
+
+## analyze						- analyze
+.PHONY:analyze
+analyze:
+	@echo "make analyze";
+	mkdir -p report
+	cd vendor/golangci-lint/ && make golangci-lint
+	-go test -mod=vendor -v ./... -json > report/test.json
+	-go vet -mod=vendor -n ./... 2> report/govet-report.out
+	-go test -mod=vendor -coverprofile=report/coverage.out ./...
+	-vendor/golangci-lint/golangci-lint run -c .golangci.yml > report/report.xml
+# 	gometalinter ./... > report/gometalinter-report.out
+
+
+
+## help						- print this help message and exit.
+.PHONY: help
+help: Makefile
+	@echo ""
+	@echo "Choose a command run in "$(file_path)":"
+	@echo ""
+	@echo "Usage: make [command]"
+	@echo ""
+	@echo "command:				desc:"
+	@echo ""
+	@sed -n 's/^## //p' $<
+
+
+
+## build_clean					- build build_clean
+build_clean:
+	@echo "make build_clean";
+	docker run --rm -v `pwd`:/home/isecnet $(BUILD_DOCKER_NAME)  make clean;
+
+## build_web					- build build_web
+build_web:
+	@echo "make build_web";
+	docker run --rm -v `pwd`:/home/isecnet $(BUILD_DOCKER_NAME)  make web;
+
+## build_generate			    - generate project proto
+build_generate:
+	@echo "make build_generate";
+	docker run --rm -v `pwd`:/home/isecnet $(BUILD_DOCKER_NAME) sh -c "$(INSTALL_PROTOC) ; cd pb ; go generate";
+
+
+## build_vendor						- generate project vendor
+build_vendor:
+	@echo "make build_vendor";
+	docker run --rm -v `pwd`:/home/isecnet  $(BUILD_DOCKER_NAME) sh -c "go env -w GOPROXY=https://goproxy.io,direct && go mod vendor";
+
+## build_acc						- docker build project
+build_acc:
+	@echo "make build_acc";
+	cd pkg && swag init ;
+	docker run --rm -v `pwd`:/home/isecnet  $(BUILD_C_DOCKER_NAME) sh -c "cd /home/isecnet; rm -rf log/* ; make acc";
+
+## build_packtool						- docker build_packtool
+build_packtool:
+	@echo "make build_packtool";
+	docker run --rm -v `pwd`:/home/isecnet  $(BUILD_C_DOCKER_NAME) sh -c "cd /home/isecnet ; make packtool";
+
+
+## build_uptool						- docker build_uptool
+build_uptool:
+	@echo "make build_uptool";
+	docker run --rm -v `pwd`:/home/isecnet  $(BUILD_DOCKER_NAME)  make uptool;
+
+
+
+## build_accUpdatePack					- build accUpdatePack
+build_accUpdatePack: build_uptool build_packtool
+	@echo "make build_accUpdatePack";
+	docker run --rm -v `pwd`:/home/isecnet  $(BUILD_DOCKER_NAME) make accUpdatePack;
+
+## build_accInstallPackGenerate				- build build_accInstallPackGenerate
+build_accInstallPackGenerate:
+	@echo "make build_accInstallPackGenerate";
+	docker run --rm -v `pwd`:/home/isecnet  $(BUILD_DOCKER_NAME) make accInstallPackGenerate;
+
+## build_accInPack				- build build_accInPack
+build_accInPack:
+	@echo "make build_accInPack";
+	docker run --rm -v `pwd`:/home/isecnet  $(BUILD_C_DOCKER_NAME) sh -c "cd /home/isecnet ; make accInPack";
+
+## build_accInstallPack						- docker build_accInstallPack
+build_accInstallPack: build_acc build_packtool build_uptool build_web
+	@echo "make build_accInstallPack";
+	wget -P accPackService/fileDir/base/linux http://isecnet.x.com/nexus3/repository/x-hive/dev/0.1.0.0/LinuxAgent_0.1.0.0.tar.gz;
+    wget -P accPackService/fileDir/base/win http://isecnet.x.com/nexus3/repository/x-hive/dev/0.1.0.0/WindowsAgent_0.1.0.0.tar.gz;
+	cp key/auth/* accPackService/fileDir;
+	cp up.sh accPackService/fileDir;
+	mkdir -p accPackService/fileDir/container;
+	tar -zcvf accPackService/fileDir/base.tar.gz accPackService/fileDir/base && rm -rf accPackService/fileDir/base;
+	docker save isecnet.x.com/database/influxdb:1.7-alpine -o accPackService/fileDir/container/influxdb.tar;
+	docker save isecnet.x.com/library/redis:6.0.5-alpine3.12 -o accPackService/fileDir/container/redis.tar;
+	docker save isecnet.x.com:9080/mysql/mysql:5.7 -o accPackService/fileDir/container/mysql.tar;
+	docker save isecnet.x.com/x-hive/nsiswine:alpine -o accPackService/fileDir/container/acc.tar;
+	docker save isecnet.x.com/library/kafka:2.12-2.4.1 -o accPackService/fileDir/container/kafka.tar;
+	docker save isecnet.x.com/library/zookeeper:3.4.13 -o accPackService/fileDir/container/zookeeper.tar;
+	tar -zcvf accPackService/container.tar.gz accPackService/fileDir/container && rm -rf accPackService/fileDir/container;
+	./packtool.sh  \
+                        -b './' \
+                        -f 'accInstall.toml'  \
+                        -key 'key/auth/auth.crt'  \
+                        -d 'accPackService/fileDir'  \
+                        -product 'acc' \
+                        -mod 'install' \
+                        -type 'install' \
+                        -version 'v1.0.0' \
+	                    -sig 'key/auth/auth.key' \
+                        -name 'acc.pkg';
+	make -C $(file_path) build_accInstallPackGenerate;
+	make -C $(file_path) build_accInPack;
+# 	strip accInstallPack.sh;
+	cat accInPack.sh accPackService/container.tar.gz > accInstallPack.sh;
+	chmod +x accInstallPack.sh;
+	rm -rf accInPack.sh;
+# 	curl -v -u x-hive:QWEzxc@123 --upload-file accInstallPack.sh http://isecnet.x.com/nexus3/repository/x-hive/dev/0.1.0.0/;
+
+accUpdatePack:
+	./packtool.sh  \
+	-b './' \
+	-des_base_path '' \
+	-f 'accUpdate.toml'  \
+	-key 'key/auth/auth.crt'  \
+	-d './'  \
+	-product 'accUpdate' \
+	-mod 'update' \
+	-type 'update' \
+	-version 'v1.1.0' \
+	-sig 'key/auth/auth.key' \
+	-name 'accUpdate.pkg';
+
+accInstallPackGenerate:
+	$(INSTALL_STATIC);
+	go generate accPackService/accPackService.go;
+
+uptool:
+	go build -mod=vendor -o up.sh accUpdateContainer/main.go;
+	strip up.sh;
+
+accInPack:
+	CGO_ENABLED="1" \
+	CGO_LDFLAGS="--no-pie -L/usr/lib/x86_64-linux-gnu/ -Bstatic -lssl -lcrypto  -ldl -lssl -lpthread -lc" \
+	go build -mod=vendor -ldflags " -s -w -extldflags '-static' -X 'main.FileSize=`wc -c accPackService/container.tar.gz`'" -o accInPack.sh accPackService/accPackService.go;
+
+packtool:
+	go build -mod=vendor -ldflags " -s -w -extldflags '-static'" -o packtool.sh unpack/packtool/packtool.go;
+	strip packtool.sh;
+
+acc:
+# 	CGO_ENABLED="1" \
+	CGO_CFLAGS="-I clib" \
+	CGO_LDFLAGS="-no-pie -L/usr/lib/x86_64-linux-gnu/ -Lclib -Bstatic -lgolic -lssl -lcrypto  -ldl -lssl -lpthread -lc"
+	go build -mod=vendor -ldflags " -s -w -extldflags '-static'"  -o acc.sh cmd/acc/main.go;
+	strip acc.sh;
+
+clean:
+	rm -rf update/* base/linux/* base/win/* log/* install/*
+
+web:
+	rm -rf static;
+	wget http://isecnet.x.com/nexus3/repository/x-hive/dev/0.1.0.0/dist.tar.gz;
+	tar -axvf dist.tar.gz;
+	mv dist static;
+	rm -rf dist.tar.gz;
