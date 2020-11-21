@@ -1,0 +1,28 @@
+<!DOCTYPE html>
+<html lang="ch">
+<head>
+    <meta charset="UTF-8">
+    <title>do_while</title>
+</head>
+<body>
+<script>
+    "use strict"
+
+    function fibonat(num = 5) {
+        let a = 0, b = 1
+        do {
+            document.write(a)
+            document.write("<br>")
+            let tmp = a + b
+            a = b
+            b = tmp
+        } while (--num > 0)
+    }
+
+    let num = parseInt(prompt("please enter you number:"))
+
+    fibonat(num)
+
+</script>
+</body>
+</html>

@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html lang="ch">
+<head>
+    <meta charset="UTF-8">
+    <title>string</title>
+</head>
+<body>
+
+<input type="text" id="password">
+<span id="msg"></span>
+
+<script>
+    "use strict"
+
+    function query(sl) {
+        return document.querySelector(sl)
+    }
+
+
+    let pass = query(`#password`)
+    pass.addEventListener("keyup", function () {
+        this.value = this.value.trim()
+
+        let span = query("#msg")
+        let msg = ""
+        let pl = this.value.length
+
+        if (pl > 10) {
+            msg = "ps high"
+        } else if (pl > 5) {
+            msg = "ps middle"
+        } else {
+            msg = "ps so simple"
+        }
+
+        span.innerHTML = msg
+
+    })
+
+
+</script>
+</body>
+</html>

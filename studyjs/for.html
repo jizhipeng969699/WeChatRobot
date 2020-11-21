@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+<html lang="ch">
+<head>
+    <meta charset="UTF-8">
+    <title>for</title>
+</head>
+<body>
+<script>
+    "use strict"
+
+    // yang hui
+    function square(row) {
+        for (let i = 1; i <= row; i++) {
+
+            for (let j = 0; j < row - i; j++) {
+                document.write("<span style='color: white'>*</span>")
+            }
+
+            for (let j = 0; j < i * 2 - 1; j++) {
+                document.write("*")
+            }
+
+            document.write("<br>")
+        }
+    }
+
+    let row = parseInt(prompt("square row , default 5 : ")) || 5
+
+    square(row)
+
+</script>
+</body>
+</html>

@@ -1,0 +1,30 @@
+<!DOCTYPE html>
+<html lang="ch">
+<head>
+    <meta charset="UTF-8">
+    <title>template</title>
+</head>
+<body>
+<script>
+    "use strict"
+    let name = "xiao a"
+    let age = 18
+
+    function tag(strings, ...vars) {
+        console.log(strings)
+    }
+
+    // document.write(tag`${name}, ${age}`)
+    tag`${name}`
+
+
+    let arry = [1, 2, 3, 4, 5]
+
+    arry.map((value, index, array) =>
+        document.write(`value : ${value}   index:${index}    array:${array}`)
+    )
+
+
+</script>
+</body>
+</html>

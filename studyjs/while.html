@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html lang="ch">
+<head>
+    <meta charset="UTF-8">
+    <title>while</title>
+</head>
+<body>
+
+
+<script>
+    "use strict"
+
+    function square(num = 5) {
+        let f = num
+
+        while (num-- > 0) {
+            let l = 0
+            while (l++ < num) {
+                document.write("<span>d</span>")
+            }
+
+            let t = (f - num) * 2 - 1
+            while (t-- > 0) {
+                document.write("*")
+            }
+
+            document.write("<br>")
+        }
+    }
+
+
+    let num = parseInt(prompt("please enter an number :")) || 5
+
+    square(num)
+
+</script>
+
+</body>
+</html>

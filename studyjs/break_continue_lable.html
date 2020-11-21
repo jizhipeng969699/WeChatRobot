@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html lang="ch">
+<head>
+    <meta charset="UTF-8">
+    <title>break_continue_lable.html</title>
+</head>
+<body>
+<script>
+
+    function js_continue(num) {
+        do {
+            if (num % 2) {
+                continue
+            }
+            document.write(num)
+        } while (num-- > 0)
+    }
+
+    function js_break(num) {
+
+        let tmp = 90
+
+        for (let i = 0; i < num; i++) {
+            if (i * i > tmp) {
+                break
+            }
+            document.write(i)
+        }
+
+    }
+
+    js_continue(10)
+    document.write("<br>")
+    js_break(10)
+
+
+    function js_lable() {
+
+        let mark = "m"
+
+        C: for (let i = 2; i < 100; i++) {
+
+            for (let j = 0; j < i; j++) {
+                if (i == i * j) {
+                    mark = "lable"
+                    break C
+                }
+            }
+        }
+
+        document.write(mark)
+
+    }
+
+    js_lable()
+
+</script>
+</body>
+</html>

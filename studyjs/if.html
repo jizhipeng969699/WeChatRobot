@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<html lang="ch">
+<head>
+    <meta charset="UTF-8">
+    <title>if</title>
+</head>
+
+<input type="text" id="password">
+
+<body>
+<script>
+    "use strict"
+
+    function query(sl) {
+        return document.querySelector(sl)
+    }
+
+    let p = query("#password")
+
+    p.addEventListener("keyup", function () {
+        let pass = p.value.toString()
+
+        let msg = ""
+
+        if (pass == "lilu") {
+            msg = "hello lilu"
+        } else {
+            msg = "ll"
+        }
+        console.log(msg)
+    })
+
+</script>
+</body>
+</html>
