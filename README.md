@@ -1,1 +1,14 @@
-各种demo，文件夹名为功能名
+# READ ME
+
+## demo , dir name is demo infomation
+
+```shell
+.
+├── golangGMP
+├── linuxService
+├── studyjs
+└── stupython
+```
+
+|   |   |
+|---|---|
