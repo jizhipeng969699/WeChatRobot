@@ -24,7 +24,7 @@
 
 ## k8s 名词含义
 
-> 高可用集群数量做好的 3 5 7 9 个
+> 高可用集群数量最好是 3 5 7 9 个
 
 - Api Server  : 所有服务访问统一入口
 - CrontrollerMagnger ： 维持副本期望数目
@@ -42,7 +42,14 @@
 # 基础概念：
 
 ### 什么是pod
-#### 自主式pod。
+
+- 同一个pod 会公用一个 pause 的网络栈 ， 同一个pod内容器以本地形式互相访问
+- pod 之间 通过 Overlay NetWork 进行通讯
+- pod 与service 之间 通过 iptables 规则通讯
+
+#### 自主式pod
+
+#### 控制器管理的pod
 
 ### 控制器类型
 
