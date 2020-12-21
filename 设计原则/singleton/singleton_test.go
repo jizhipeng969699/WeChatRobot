@@ -1,4 +1,4 @@
-package 设计原则
+package singleton
 
 import (
 	"sync"
